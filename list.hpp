@@ -88,61 +88,73 @@ class List {
   List() : size_(0) {}
 
   List(size_t count, const T& value, const Alloc& alloc = Alloc()) : size_(count) {
-    Node<T>* cur = NodeAllocTraits::allocate(node_alloc_, 1);
+    Node<T> *cur = NodeAllocTraits::allocate(node_alloc_, 1);
     NodeAllocTraits::construct(node_alloc_, cur, value);
     initial_node_.next_ = cur;
-    cur->prev_ = static_cast<Node<T>*>(&initial_node_);
+    cur->prev_ = static_cast<Node<T> *>(&initial_node_);
 
     for (size_t i = 0; i < count - 1; i++) {
       cur->next_ = NodeAllocTraits::allocate(node_alloc_, 1);
-      NodeAllocTraits::construct(node_alloc_, static_cast<Node<T>*>(cur->next_), value);
+      NodeAllocTraits::construct(node_alloc_, static_cast<Node<T> *>(cur->next_), value);
       cur->next_->prev_ = cur;
 
-      cur = static_cast<Node<T>*>(cur->next_);
+      cur = static_cast<Node<T> *>(cur->next_);
     }
 
-    cur->next_ = static_cast<Node<T>*>(&initial_node_);
+    cur->next_ = static_cast<Node<T> *>(&initial_node_);
     initial_node_.prev_ = cur;
   }
 
   explicit List(size_t count, const Alloc& alloc = Alloc()): size_(count) {
-    Node<T>* cur = NodeAllocTraits::allocate(node_alloc_, 1);
-    NodeAllocTraits::construct(node_alloc_, cur);
-    initial_node_.next_ = cur;
-    cur->prev_ = static_cast<Node<T>*>(&initial_node_);
+    try {
+      Node<T> *cur = NodeAllocTraits::allocate(node_alloc_, 1);
+      NodeAllocTraits::construct(node_alloc_, cur);
+      initial_node_.next_ = cur;
+      cur->prev_ = static_cast<Node<T> *>(&initial_node_);
 
-    for (size_t i = 0; i < count - 1; i++) {
-      cur->next_ = NodeAllocTraits::allocate(node_alloc_, 1);
-      NodeAllocTraits::construct(node_alloc_, static_cast<Node<T>*>(cur->next_));
-      cur->next_->prev_ = cur;
+      for (size_t i = 0; i < count - 1; i++) {
+        cur->next_ = NodeAllocTraits::allocate(node_alloc_, 1);
+        NodeAllocTraits::construct(node_alloc_, static_cast<Node<T> *>(cur->next_));
+        cur->next_->prev_ = cur;
 
-      cur = static_cast<Node<T>*>(cur->next_);
+        cur = static_cast<Node<T> *>(cur->next_);
+      }
+
+      cur->next_ = static_cast<Node<T> *>(&initial_node_);
+      initial_node_.prev_ = cur;
+    } catch (...) {
+      // TODO: destroy
+
+      throw 1;
     }
-
-    cur->next_ = static_cast<Node<T>*>(&initial_node_);
-    initial_node_.prev_ = cur;
   }
 
   List(const List<T, Alloc>& other) : size_(other.size_) {
     auto beg = other.begin();
     auto end = other.end();
 
-    Node<T>* cur = NodeAllocTraits::allocate(node_alloc_, 1);
-    NodeAllocTraits::construct(node_alloc_, cur, *beg);
-    initial_node_.next_ = cur;
-    cur->prev_ = static_cast<Node<T>*>(&initial_node_);
+    try {
+      Node<T> *cur = NodeAllocTraits::allocate(node_alloc_, 1);
+      NodeAllocTraits::construct(node_alloc_, cur, *beg);
+      initial_node_.next_ = cur;
+      cur->prev_ = static_cast<Node<T> *>(&initial_node_);
 
-    ++beg;
-    for (; beg != end; ++beg) {
-      cur->next_ = NodeAllocTraits::allocate(node_alloc_, 1);
-      NodeAllocTraits::construct(node_alloc_, static_cast<Node<T>*>(cur->next_), *beg);
-      cur->next_->prev_ = cur;
+      ++beg;
+      for (; beg != end; ++beg) {
+        cur->next_ = NodeAllocTraits::allocate(node_alloc_, 1);
+        NodeAllocTraits::construct(node_alloc_, static_cast<Node<T> *>(cur->next_), *beg);
+        cur->next_->prev_ = cur;
 
-      cur = static_cast<Node<T>*>(cur->next_);
+        cur = static_cast<Node<T> *>(cur->next_);
+      }
+
+      cur->next_ = static_cast<Node<T> *>(&initial_node_);
+      initial_node_.prev_ = cur;
+    } catch (...) {
+      // TODO: blya
+
+      throw 1;
     }
-
-    cur->next_ = static_cast<Node<T>*>(&initial_node_);
-    initial_node_.prev_ = cur;
 
     list_alloc_ = AllocTraits::select_on_container_copy_construction(other.list_alloc_);
     node_alloc_ = AllocTraits::select_on_container_copy_construction(other.node_alloc_);
@@ -151,60 +163,57 @@ class List {
   List(std::initializer_list<T> init, const Alloc& alloc = Alloc()): size_(init.size()) {
     auto iter = init.begin();
     auto init_end = init.end();
-    Node<T>* cur = NodeAllocTraits::allocate(node_alloc_, 1);
-    NodeAllocTraits::construct(node_alloc_, cur, *iter);
-    initial_node_.next_ = cur;
-    cur->prev_ = static_cast<Node<T>*>(&initial_node_);
 
-    iter++;
-    for (; iter < init_end; iter++) {
-      cur->next_ = NodeAllocTraits::allocate(node_alloc_, 1);
-      NodeAllocTraits::construct(node_alloc_, static_cast<Node<T>*>(cur->next_), *iter);
-      cur->next_->prev_ = cur;
+    try {
+      Node<T> *cur = NodeAllocTraits::allocate(node_alloc_, 1);
+      NodeAllocTraits::construct(node_alloc_, cur, *iter);
+      initial_node_.next_ = cur;
+      cur->prev_ = static_cast<Node<T> *>(&initial_node_);
 
-      cur = static_cast<Node<T>*>(cur->next_);
+      iter++;
+      for (; iter < init_end; iter++) {
+        cur->next_ = NodeAllocTraits::allocate(node_alloc_, 1);
+        NodeAllocTraits::construct(node_alloc_, static_cast<Node<T> *>(cur->next_), *iter);
+        cur->next_->prev_ = cur;
+
+        cur = static_cast<Node<T> *>(cur->next_);
+      }
+
+      cur->next_ = static_cast<Node<T> *>(&initial_node_);
+      initial_node_.prev_ = cur;
+    } catch (...) {
+      // TODO: sss
+
+      throw 1;
     }
-
-    cur->next_ = static_cast<Node<T>*>(&initial_node_);
-    initial_node_.prev_ = cur;
   }
 
   List& operator=(const List<T, Alloc>& other) {
-//    std::cout << "Other node: " << &other.initial_node_ << '\n';
+    List<T, Alloc> safe_copy(*this);
 
-    List<T, Alloc> temp(other);
+    try {
+      List<T, Alloc> temp(other);
 
-//    std::cout << "Before swap\nTemp: " << temp << "\nthis: " << *this << '\n';
+      std::swap(size_, temp.size_);
+      std::swap(initial_node_, temp.initial_node_);
 
-    std::swap(size_, temp.size_);
+      initial_node_.next_->prev_ = &initial_node_;
+      initial_node_.prev_->next_ = &initial_node_;
 
-//    std::cout << "My node: " << &initial_node_ << " initial node of son of mother's friend: " << &(temp.initial_node_) << '\n';
+      if (temp.size_ == 0) {
+        temp.initial_node_.next_ = &temp.initial_node_;
+        temp.initial_node_.prev_ = &temp.initial_node_;
+      } else {
+        temp.initial_node_.next_->prev_ = &temp.initial_node_;
+        temp.initial_node_.prev_->next_ = &temp.initial_node_;
+      }
 
-    std::swap(initial_node_, temp.initial_node_);
-
-//    std::cout << "References after swap: " << &initial_node_ << " || " << initial_node_.next_->prev_ << " || " << initial_node_.prev_->next_ << '\n';
-//
-//    std::cout << "After swap\nTemp: " << temp << "\nthis: " << *this << '\n';
-
-//    std::cout << "My node: " << &initial_node_ << " initial node of son of mother's friend: " << &(temp.initial_node_) << '\n';
-
-    initial_node_.next_->prev_ = &initial_node_;
-    initial_node_.prev_->next_ = &initial_node_;
-
-//    std::cout << "After rebinding 1\nTemp: " << temp << "\nthis: " << *this << '\n';
-
-    if (temp.size_ == 0) {
-      temp.initial_node_.next_ = &temp.initial_node_;
-      temp.initial_node_.prev_ = &temp.initial_node_;
-    } else {
-      temp.initial_node_.next_->prev_ = &temp.initial_node_;
-      temp.initial_node_.prev_->next_ = &temp.initial_node_;
-    }
-
-//    std::cout << "After rebinding 2\nTemp: " << temp << "\nthis: " << *this << '\n';
-
-    if (NodeAllocTraits::propagate_on_container_copy_assignment::value && list_alloc_ != other.list_alloc_) {
-      list_alloc_ = other.list_alloc_;
+      if (NodeAllocTraits::propagate_on_container_copy_assignment::value && list_alloc_ != other.list_alloc_) {
+        list_alloc_ = other.list_alloc_;
+      }
+    } catch (...) {
+      *this = safe_copy;
+      throw 1;
     }
 
     return *this;
@@ -247,16 +256,29 @@ class List {
   }
 
   void push_back(const T& val) {
-    push_back(std::move(val));
+    try {
+      push_back(std::move(val));
+    } catch (int) {
+      throw 1;
+    }
   }
 
   void push_front(const T& val) {
-    push_front(std::move(val));
+    try {
+      push_front(std::move(val));
+    } catch (int) {
+      throw 1;
+    }
   }
 
   void push_back(T&& val) {
     Node<T>* node_to_push = NodeAllocTraits::allocate(node_alloc_, 1);
-    NodeAllocTraits::construct(node_alloc_, node_to_push, val);
+
+    try {
+      NodeAllocTraits::construct(node_alloc_, node_to_push, val);
+    } catch (...) {
+      NodeAllocTraits::deallocate(node_alloc_, node_to_push, 1);
+    }
 
     node_to_push->prev_ = static_cast<Node<T>*>(initial_node_.prev_);
     initial_node_.prev_->next_ = node_to_push;
@@ -269,7 +291,12 @@ class List {
 
   void push_front(T&& val) {
     Node<T>* node_to_push = NodeAllocTraits::allocate(node_alloc_, 1);
-    NodeAllocTraits::construct(node_alloc_, node_to_push, val);
+
+    try {
+      NodeAllocTraits::construct(node_alloc_, node_to_push, val);
+    } catch (...) {
+      NodeAllocTraits::deallocate(node_alloc_, node_to_push, 1);
+    }
 
     node_to_push->next_ = static_cast<Node<T>*>(initial_node_.next_);
     initial_node_.next_->prev_ = node_to_push;
@@ -280,7 +307,7 @@ class List {
     size_++;
   }
 
-  void pop_back() {
+  void pop_back() noexcept {
     initial_node_.prev_ = initial_node_.prev_->prev_;
 
     NodeAllocTraits::destroy(node_alloc_, static_cast<Node<T>*>(initial_node_.prev_->next_));
@@ -291,7 +318,7 @@ class List {
     size_--;
   }
 
-  void pop_front() {
+  void pop_front() noexcept {
     initial_node_.next_ = initial_node_.next_->next_;
 
     NodeAllocTraits::destroy(node_alloc_, static_cast<Node<T>*>(initial_node_.next_->prev_));
