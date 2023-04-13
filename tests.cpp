@@ -392,6 +392,6 @@ void EXCEPTS() {
     // Actually it may not be 8 (although de facto it is), but the only thing we
     // can demand here is the abscence of memory leaks
 
-     assert(lst.size() == 8);
+     EXPECT_TRUE(lst.size() == 8);
   }
 }
