@@ -123,7 +123,7 @@ class List {
     initial_node_.prev_ = cur;
   }
 
-  List(const List<T>& other) : size_(other.size_) {
+  List(const List<T, Alloc>& other) : size_(other.size_) {
     auto beg = other.begin();
     auto end = other.end();
 
@@ -169,19 +169,39 @@ class List {
     initial_node_.prev_ = cur;
   }
 
-  // TODO: dingus does not work
-  List& operator=(const List& other) {
-    std::cout << "Other node: " << &other.initial_node_ << '\n';
+  List& operator=(const List<T, Alloc>& other) {
+//    std::cout << "Other node: " << &other.initial_node_ << '\n';
 
     List<T, Alloc> temp(other);
 
+//    std::cout << "Before swap\nTemp: " << temp << "\nthis: " << *this << '\n';
+
     std::swap(size_, temp.size_);
 
-    std::cout << "My node: " << &initial_node_ << " initial node of son of mother's friend: " << &(temp.initial_node_) << '\n';
+//    std::cout << "My node: " << &initial_node_ << " initial node of son of mother's friend: " << &(temp.initial_node_) << '\n';
 
-    swap(initial_node_, temp.initial_node_);
+    std::swap(initial_node_, temp.initial_node_);
 
-    std::cout << "My node: " << &initial_node_ << " initial node of son of mother's friend: " << &(temp.initial_node_) << '\n';
+//    std::cout << "References after swap: " << &initial_node_ << " || " << initial_node_.next_->prev_ << " || " << initial_node_.prev_->next_ << '\n';
+//
+//    std::cout << "After swap\nTemp: " << temp << "\nthis: " << *this << '\n';
+
+//    std::cout << "My node: " << &initial_node_ << " initial node of son of mother's friend: " << &(temp.initial_node_) << '\n';
+
+    initial_node_.next_->prev_ = &initial_node_;
+    initial_node_.prev_->next_ = &initial_node_;
+
+//    std::cout << "After rebinding 1\nTemp: " << temp << "\nthis: " << *this << '\n';
+
+    if (temp.size_ == 0) {
+      temp.initial_node_.next_ = &temp.initial_node_;
+      temp.initial_node_.prev_ = &temp.initial_node_;
+    } else {
+      temp.initial_node_.next_->prev_ = &temp.initial_node_;
+      temp.initial_node_.prev_->next_ = &temp.initial_node_;
+    }
+
+//    std::cout << "After rebinding 2\nTemp: " << temp << "\nthis: " << *this << '\n';
 
     if (NodeAllocTraits::propagate_on_container_copy_assignment::value && list_alloc_ != other.list_alloc_) {
       list_alloc_ = other.list_alloc_;
@@ -195,7 +215,7 @@ class List {
   bool empty() const { return size_ == 0; }
 
   ~List() {
-    std::cout << "Ya dolboeb!\n";
+    // std::cout << "Ya dolboeb!\n";
 
     auto cur = static_cast<Node<T>*>(initial_node_.next_->next_);
 
@@ -306,15 +326,15 @@ class List {
 
   const_reverse_iterator crend() const { return const_reverse_iterator(const_cast<TruncatedNode*>(&initial_node_)); }
 
-//  friend std::ostream& operator<<(std::ostream& os, List<T> lst) {
-//    os << "i: " << &(lst.initial_node_) << " || " << lst.initial_node_.next_ << " || " << lst.initial_node_.prev_ << '\n';
-//    auto start = (Node<T>*)lst.initial_node_.next_;
-//    for (int i = 0; i < lst.size(); i++) {
-//      os << i << ": " << start << " || " << start->get_val() << " :: " << start->get_next() << " :: " << start->get_prev() << '\n';
-//      start = (Node<T>*)start->next_;
-//    }
-//    return os;
-//  }
+  friend std::ostream& operator<<(std::ostream& os, const List<T, Alloc>& lst) {
+    os << "i: " << &lst.initial_node_ << " || " << lst.initial_node_.next_ << " || " << lst.initial_node_.prev_ << '\n';
+    auto start = (Node<T>*)lst.initial_node_.next_;
+    for (int i = 0; i < lst.size(); i++) {
+      os << i << ": " << start << " || " << start->get_val() << " :: " << start->get_next() << " :: " << start->get_prev() << '\n';
+      start = (Node<T>*)start->next_;
+    }
+    return os;
+  }
 };
 
 template <typename T, typename Alloc>
@@ -338,6 +358,8 @@ class List<T, Alloc>::Iterator {
   Iterator& operator=(const Iterator& other) {
     cur_node_ = other.cur_node_;
   }
+
+  ~Iterator() = default;
 
   Iterator& operator++() {
     if (IsReversed) {

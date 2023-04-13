@@ -211,13 +211,14 @@ void CONSTRUCTOR() {
   {
     SetupTest();
     const size_t size = 5;
-    List<TypeWithCounts, AllocatorWithCount<TypeWithCounts>> l1 = {1, 2, 3, 4,
-                                                                   5};
+    List<TypeWithCounts, AllocatorWithCount<TypeWithCounts>> l1 = {1, 2, 3, 4, 5};
+
     List<TypeWithCounts, AllocatorWithCount<TypeWithCounts>> l2(l1);
 
     ASSERT_TRUE(l2.size() == size);
     ASSERT_TRUE(MemoryManager::allocator_allocated != 0);
     ASSERT_TRUE(MemoryManager::allocator_constructed == size * 2);
+
     ASSERT_TRUE(AreListsEqual(l1, l2));
     for (auto& value : l1) {
       ASSERT_TRUE(*value.copy_c == 2);
@@ -264,7 +265,7 @@ void BASIC_FUNC() {
   ASSERT_TRUE(s == "54321");
 }
 
-void PROTAGATE() {
+void PROPAGATE() {
   {
     SetupTest();
     List<int, WhimsicalAllocator<int, true, true>> lst;
@@ -272,11 +273,18 @@ void PROTAGATE() {
     lst.push_back(1);
     lst.push_back(2);
 
+//    std::cout << "After push back: " <<  lst << '\n';
+
     auto copy = lst;
-    assert(copy.get_allocator() != lst.get_allocator());
+
+//    std::cout << "Copy: " <<  copy << '\n';
+
+    EXPECT_TRUE(copy.get_allocator() != lst.get_allocator());
 
     lst = copy;
-    assert(copy.get_allocator() == lst.get_allocator());
+
+//    std::cout << "After lst = copy: " <<  lst << '\n';
+    EXPECT_TRUE(copy.get_allocator() == lst.get_allocator());
   }
 
   {
@@ -287,10 +295,10 @@ void PROTAGATE() {
     lst.push_back(2);
 
     auto copy = lst;
-    assert(copy.get_allocator() == lst.get_allocator());
+    EXPECT_TRUE(copy.get_allocator() == lst.get_allocator());
 
     lst = copy;
-    assert(copy.get_allocator() == lst.get_allocator());
+    EXPECT_TRUE(copy.get_allocator() == lst.get_allocator());
   }
 
   {
@@ -301,10 +309,10 @@ void PROTAGATE() {
     lst.push_back(2);
 
     auto copy = lst;
-    assert(copy.get_allocator() != lst.get_allocator());
+    EXPECT_TRUE(copy.get_allocator() != lst.get_allocator());
 
     lst = copy;
-    assert(copy.get_allocator() != lst.get_allocator());
+    EXPECT_TRUE(copy.get_allocator() != lst.get_allocator());
   }
 }
 
@@ -330,11 +338,16 @@ void ACCOUNTANT() {
       ASSERT_TRUE(lst.size() == 3);
 
       ASSERT_TRUE(Accountant::ctor_calls == 13);
-      ASSERT_TRUE(Accountant::dtor_calls == 7);
+      ASSERT_TRUE(Accountant::dtor_calls == 7); // TODO
+
+      std::cout << "Destructor calls (7): " << Accountant::dtor_calls << '\n';
+
     }  // dtor_calls += 6
 
     ASSERT_TRUE(Accountant::ctor_calls == 13);
-    ASSERT_TRUE(Accountant::dtor_calls == 13);
+    ASSERT_TRUE(Accountant::dtor_calls == 13); // TODO
+
+    std::cout << "Destructor calls (13): " << Accountant::dtor_calls << '\n';
   }
 }
 
